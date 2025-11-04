@@ -1,0 +1,145 @@
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function TebakGambarGame() {
+  const [slides, setSlides] = useState(
+    Array.from({ length: 10 }, (_, i) => ({
+      id: i + 1,
+      clueImage: null,
+      correctAnswer: "",
+      userAnswer: "",
+      answered: false,
+    }))
+  );
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const handleImageUpload = (index, file) => {
+    const newSlides = [...slides];
+    newSlides[index].clueImage = URL.createObjectURL(file);
+    setSlides(newSlides);
+  };
+
+  const handleAnswerChange = (index, value) => {
+    const newSlides = [...slides];
+    newSlides[index].userAnswer = value;
+    setSlides(newSlides);
+  };
+
+  const handleAnswerSubmit = (index) => {
+    const newSlides = [...slides];
+    const answer = newSlides[index].userAnswer.trim().toLowerCase();
+    const correct = newSlides[index].correctAnswer.trim().toLowerCase();
+
+    if (answer === correct && correct !== "") {
+      newSlides[index].answered = true;
+      setSlides(newSlides);
+      if (index < slides.length - 1) setCurrentSlide(index + 1);
+      alert("✅ Jawaban benar! Lanjut ke soal berikutnya!");
+    } else {
+      alert("❌ Jawaban salah, coba lagi!");
+    }
+  };
+
+  const handleSetCorrectAnswer = (index, value) => {
+    const newSlides = [...slides];
+    newSlides[index].correctAnswer = value;
+    setSlides(newSlides);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-100 to-blue-300 p-6">
+      <Card className="w-full max-w-3xl p-4 shadow-2xl rounded-2xl bg-white">
+        <CardContent>
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center"
+          >
+            <h2 className="text-2xl font-bold mb-4 text-blue-800">
+              Tebak Gambar #{currentSlide + 1}
+            </h2>
+
+            <div className="mb-4">
+              {slides[currentSlide].clueImage ? (
+                <img
+                  src={slides[currentSlide].clueImage}
+                  alt="Clue"
+                  className="mx-auto rounded-xl shadow-lg max-h-64 object-cover"
+                />
+              ) : (
+                <label className="block p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      handleImageUpload(currentSlide, e.target.files[0])
+                    }
+                  />
+                  <p className="text-gray-500">
+                    📸 Upload gambar clue (sebagian gambar)
+                  </p>
+                </label>
+              )}
+            </div>
+
+            <div className="mb-2">
+              <input
+                type="text"
+                placeholder="Tulis jawaban yang benar (untuk guru)"
+                className="border rounded-lg p-2 w-full mb-2"
+                value={slides[currentSlide].correctAnswer}
+                onChange={(e) =>
+                  handleSetCorrectAnswer(currentSlide, e.target.value)
+                }
+              />
+            </div>
+
+            <input
+              type="text"
+              placeholder="Tebak gambar ini..."
+              className="border rounded-lg p-2 w-full text-center"
+              value={slides[currentSlide].userAnswer}
+              onChange={(e) =>
+                handleAnswerChange(currentSlide, e.target.value)
+              }
+              disabled={slides[currentSlide].answered}
+            />
+
+            <div className="mt-4 flex justify-center gap-4">
+              {!slides[currentSlide].answered ? (
+                <Button
+                  onClick={() => handleAnswerSubmit(currentSlide)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700"
+                >
+                  Cek Jawaban
+                </Button>
+              ) : (
+                <Button
+                  onClick={() =>
+                    setCurrentSlide(
+                      currentSlide < slides.length - 1
+                        ? currentSlide + 1
+                        : currentSlide
+                    )
+                  }
+                  className="bg-green-600 text-white px-6 py-2 rounded-xl hover:bg-green-700"
+                >
+                  Lanjutkan ➡️
+                </Button>
+              )}
+            </div>
+
+            <p className="mt-6 text-gray-600">
+              Soal {currentSlide + 1} dari {slides.length}
+            </p>
+          </motion.div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
